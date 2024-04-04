@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.Deployment.name }}
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ .Values.Deployment.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.Deployment.name }}
+    spec:
+    {{ if .Values.serviceAccount.create }}
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+    {{ end }}
+      containers:
+      - name: {{ .Values.Deployment.name }}
+        image: {{ .Values.Deployment.image.repository }}
+        {{- with .Values.Deployment.image.args }}
+        args:
+            {{- toYaml . | nindent 12 }}
+        {{- end }}
+        {{- with .Values.Deployment.image.env }}
+        env:
+            {{- toYaml . | nindent 12 }}
+        {{- end }}

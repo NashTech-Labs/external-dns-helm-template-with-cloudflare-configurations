@@ -1,0 +1,34 @@
+Deployment:
+  name: external-dns
+  replicaCount: 1
+
+  image:
+    repository: registry.k8s.io/external-dns/external-dns:v0.14.1
+    args:
+      - --source=ingress" # service is also possible
+      - --domain-filter=domain.com # (optional) limit to only example.com domains; change to match the zone created above.
+      - --provider=cloudflare
+      - --cloudflare-proxied # (optional) enable the proxy feature of Cloudflare (DDOS protection, CDN...)
+      - --cloudflare-dns-records-per-page=5000 
+    env: 
+      - name: CF_API_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: cloudflare-dns-token
+            key: cf-token
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account (provide as a string)
+  annotations: {}
+  # The name of the service account to use.
+  name: "external-dns"
+
+clusterRole:
+  create: true
+  name: external-dns
+
+secret: 
+  name: cloudflare-dns-token
+  cftoken: "replace me" #replace this token
